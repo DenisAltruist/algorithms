@@ -60,6 +60,30 @@ vector<int> buildSuffixArray(const vector<int>& s, int alphabetSize) {
     return p;
 }
 
+vector<int> getLCP(const vector<int>& str, const vector<int>& suf) {
+    int n = str.size();
+    vector<int> pos(n), lcp(n);
+    for (int i = 0; i < n; ++i) {
+        pos[suf[i]] = i;
+    }
+    int k = 0;
+    for (int i = 0; i < n; ++i) {
+        if (k > 0) {
+            k--;
+        }
+        if (pos[i] == n - 1) {
+            lcp[n - 1] = -1;
+            k = 0;
+            continue;
+        }
+        int j = suf[pos[i] + 1];
+        while (max(i + k, j + k) < n && str[i + k] == str[j + k]) {
+            k++;
+        }
+        lcp[pos[i]] = k;
+    }
+    return lcp;
+}
 
 int main() {
     ios_base::sync_with_stdio(false);
@@ -67,12 +91,27 @@ int main() {
     cout.tie(0);
 
     string s;
+    //s = "abacaba$";
+    //cerr << s << endl;
     cin >> s;
+    s += "$";
     vector<int> v;
     for (size_t i = 0; i < s.size(); ++i) {
         v.push_back(s[i]);
     }
     vector<int> p = buildSuffixArray(v, 256);
-    string ans = s.substr(p[0], s.size()) + s.substr(0, p[0]);
-    cout << ans << endl; // minimal lexicographical shift
+    vector<int> lcp = getLCP(v, p);
+    long long cntOfDiffSubstrs = 0;
+    //cerr << "Suffixes and lcp: " << endl;
+    for (size_t i = 0; i < s.size(); ++i) {
+        //string ans = s.substr(p[i], s.size() - p[i] - 1);
+        //cerr << ans << " " << lcp[i] << endl;
+        if (i != s.size() - 1) {
+            cntOfDiffSubstrs += lcp[i];
+        }
+    }
+    //cerr << endl;
+    int n = s.size();
+    cntOfDiffSubstrs = n * 1ll * (n - 1) / 2 - cntOfDiffSubstrs;
+    cout << cntOfDiffSubstrs << endl;
 }
